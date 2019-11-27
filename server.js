@@ -5,6 +5,7 @@ const Employee = require("./Employee");
 const Role = require("./Role");
 const Department = require("./Department");
 const mysql = require("mysql");
+const util = require("util");
 
 const inquirer = require("inquirer");
 const rolesArray = [];
@@ -22,6 +23,8 @@ connection.connect(function(err) {
   if (err) throw err;
   console.log("Connected!");
 });
+
+connection.query = util.promisify(connection.query);
 
 promptUser = () => {
   inquirer
@@ -52,42 +55,7 @@ promptUser = () => {
     .then(answers => {
       switch (answers.action) {
         case "Add An Employee":
-          inquirer
-            .prompt([
-              {
-                type: "list",
-                name: "role",
-                message: "What is the employee's role?",
-                choices: rolesArray 
-              },
-              {
-                type: "list",
-                name: "department",
-                message: "What is the employees's department?",
-                choices: depArray
-              },
-              {
-                type: "input",
-                name: "firstName",
-                message: "What is the employees's first name?"
-              },
-              {
-                type: "input",
-                name: "lastName",
-                message: "What is the employees's last name?"
-              },
-              
-            ])
-            .then(answers => {
-              const employee = new Employee(
-                answers.firstName,
-                answers.lastName
-              );
-              employee.getDepID(connection, answers).getRoleID(connection, answers);
-              // employee.getDepId(connection, answers);
-              console.log(answers.department);
-              console.log(employee);
-            });
+          addEmployee();
           break;
         case "Add A Department":
           console.log(`${answers.action}`);
@@ -123,14 +91,46 @@ promptUser = () => {
     });
 };
 
+addEmployee = () => {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "role",
+        message: "What is the employee's role?",
+        choices: rolesArray
+      },
+      {
+        type: "list",
+        name: "department",
+        message: "What is the employees's department?",
+        choices: depArray
+      },
+      {
+        type: "input",
+        name: "firstName",
+        message: "What is the employees's first name?"
+      },
+      {
+        type: "input",
+        name: "lastName",
+        message: "What is the employees's last name?"
+      }
+    ])
+    .then(answers => {
+      const employee = new Employee(answers.firstName, answers.lastName);
+      employee.getRoleID(connection, answers);
+      employee.getDepID(connection, answers);
+      // employee.getDepId(connection, answers);
+      console.log(answers.department);
+      console.log(employee);
+    });
+};
+
 getAllEmployees = () => {
   const query = "SELECT * FROM employees";
   connection.query(query, (err, data) => {
     if (err) throw err;
-    // console.log("EMPLOYEES");
-    // console.table(data);
-    // connection.end();
-    // console.log(data);
   });
 };
 
@@ -138,14 +138,9 @@ getAllRoles = () => {
   const query = "SELECT * FROM roles";
   connection.query(query, (err, data) => {
     if (err) throw err;
-
     data.forEach(role => {
-      rolesArray.push(role.title)
-
-      
-      // resolve(rolesArray);
+      rolesArray.push(role.title);
     });
-    console.log(rolesArray);
   });
 };
 
@@ -154,15 +149,8 @@ getAllDepartments = () => {
   connection.query(query, (err, data) => {
     if (err) throw err;
     data.forEach(department => {
-      depArray.push(department.name)
-
-      
-      // resolve(rolesArray);
+      depArray.push(department.name);
     });
-    console.log(depArray);
-    // console.table(data);
-    // connection.end();
-    // console.log(data);
   });
 };
 
@@ -173,6 +161,8 @@ promptUser();
 const employee = new Employee("Jordan", "McQuiston");
 const role = new Role("Manager", 160000.0);
 const department = new Department("Engineering");
+
+// employee.getDepID().getRoleID();
 
 // console.log(employee);
 // console.log(role);
