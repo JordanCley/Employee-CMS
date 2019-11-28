@@ -1,15 +1,16 @@
 const generateTitle = require("./StartTitle.js");
 const title1 = "Employee";
 const title2 = "       CMS";
-const Employee = require("./Employee");
-const Role = require("./Role");
-const Department = require("./Department");
+const Employee = require("./classes/Employee");
+const Role = require("./classes/Role");
+const Department = require("./classes/Department");
 const mysql = require("mysql");
 const util = require("util");
 
 const inquirer = require("inquirer");
 const rolesArray = [];
 const depArray = [];
+const employeeArray = [];
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -82,7 +83,7 @@ promptUser = () => {
           getTableDepartments();
           break;
         case "Remove An Employee":
-          // do something;
+          removeEmployee();
           break;
         case "Remove A Role":
           // do something;
@@ -140,12 +141,47 @@ addEmployee = () => {
     });
 };
 
+removeEmployee = () => {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "employee",
+        message: "Which employee would you like to remove?",
+        choices: employeeArray
+      }
+    ])
+    .then(answers => {
+      deleteEmployee(answers);
+    });
+};
+
 async function createEmployee(answers) {
   const employee = new Employee(answers.firstName, answers.lastName);
   await employee.getRoleID(connection, answers);
   await employee.getDepID(connection, answers);
   await employee.postToDB(connection);
   promptUser();
+}
+
+async function deleteEmployee(answers) {
+  const strName = answers.employee;
+  const splitName = strName.split(" ");
+  connection.query(
+    "DELETE FROM employees Where first_name = ? AND last_name = ?",
+    [splitName[0], splitName[1]]
+  );
+  console.log(`Employee: ${strName} has been removed.`);
+  promptUser();
+}
+
+async function getAllEmployees() {
+  const query = "SELECT * FROM employees";
+  const result = await connection.query(query);
+  result.forEach(employee => {
+    const fullName = `${employee.first_name} ${employee.last_name}`;
+    employeeArray.push(fullName);
+  });
 }
 
 async function getTableEmployees() {
@@ -186,20 +222,11 @@ async function getTableDepartments() {
 }
 
 function init() {
+  getAllEmployees();
   getAllRoles();
   getAllDepartments();
   promptUser();
-  generateTitle("Employee \n       CMS");
+  generateTitle(`${title1}\n${title2}`);
 }
 
 init();
-
-const employee = new Employee("Jordan", "McQuiston");
-const role = new Role("Manager", 160000.0);
-const department = new Department("Engineering");
-
-// employee.getDepID().getRoleID();
-
-// console.log(employee);
-// console.log(role);
-// console.log(department);
