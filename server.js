@@ -62,7 +62,7 @@ promptUser = () => {
           addEmployee();
           break;
         case "Add A Department":
-          console.log(`${answers.action}`);
+          addDepartment();
           break;
         case "Add A Role":
           addRole();
@@ -89,7 +89,7 @@ promptUser = () => {
           removeRole();
           break;
         case "Remove A Department":
-          // do something;
+          removeDepartment();
           break;
         case "Update Employee Role":
           // do something;
@@ -166,6 +166,18 @@ addRole = () => {
     });
 };
 
+addDepartment = () => {
+  inquirer.prompt([
+    {
+      type: "input",
+      name: "name",
+      message: "What is the department name?"
+    }
+  ]).then(answers => {
+      createDepartment(answers);
+  });
+};
+
 removeRole = () => {
   inquirer
     .prompt([
@@ -196,6 +208,29 @@ removeEmployee = () => {
     });
 };
 
+removeDepartment = () => {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "name",
+        message: "Which department would you like to remove?",
+        choices: depArray
+      }
+    ])
+    .then(answers => {
+      deleteDepartment(answers);
+    });
+};
+
+async function createDepartment(answers) {
+  const role = new Department(answers.name);
+  await role.postToDB(connection);
+  depArray = [];
+  getAllDepartments();
+  promptUser();
+}
+
 async function createRole(answers) {
   const role = new Role(answers.title, answers.salary);
   await role.getDepID(connection, answers);
@@ -212,6 +247,13 @@ async function createEmployee(answers) {
   await employee.postToDB(connection);
   employeeArray = [];
   getAllEmployees();
+  promptUser();
+}
+
+async function deleteDepartment(answers) {
+  const department = answers.name;
+  connection.query("DELETE FROM departments Where name = ?", [department]);
+  console.log(`Role: ${department} has been removed.`);
   promptUser();
 }
 
