@@ -74,7 +74,7 @@ promptUser = () => {
           // do something;
           break;
         case "View All Employees By Manager":
-          // do something;
+            getTableEmployeesByManager();
           break;
         case "View All Roles":
           getTableRoles();
@@ -167,15 +167,17 @@ addRole = () => {
 };
 
 addDepartment = () => {
-  inquirer.prompt([
-    {
-      type: "input",
-      name: "name",
-      message: "What is the department name?"
-    }
-  ]).then(answers => {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "name",
+        message: "What is the department name?"
+      }
+    ])
+    .then(answers => {
       createDepartment(answers);
-  });
+    });
 };
 
 removeRole = () => {
@@ -284,8 +286,23 @@ async function getAllEmployees() {
   });
 }
 
+// MISSING THE MANAGERS COLUMN
 async function getTableEmployees() {
-  const query = "SELECT * FROM employees";
+  const query =
+    "SELECT employees.id, employees.first_name, employees.last_name," +  
+    "roles.title, roles.salary  FROM employees " + 
+    "INNER JOIN roles ON employees.role_id=roles.id";
+  const result = await connection.query(query);
+  console.table(result);
+  promptUser();
+}
+
+// DOESNT WORK, NEED TO FIGURE IT OUT
+async function getTableEmployeesByManager() {
+  const query =
+    "SELECT employees.id, employees.first_name, employees.last_name," +  
+    "roles.title, roles.salary FROM employees " + 
+    "INNER JOIN roles ON employees.role_id=roles.id INNER JOIN departments ON roles.department_id=departments.id";
   const result = await connection.query(query);
   console.table(result);
   promptUser();
