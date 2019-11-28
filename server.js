@@ -65,7 +65,7 @@ promptUser = () => {
           console.log(`${answers.action}`);
           break;
         case "Add A Role":
-          console.log(`${answers.action}`);
+          addRole();
           break;
         case "View All Employees":
           getTableEmployees();
@@ -141,6 +141,31 @@ addEmployee = () => {
     });
 };
 
+addRole = () => {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "title",
+        message: "What role would you like to add?" 
+      },
+      {
+        type: "input",
+        name: "salary",
+        message: "What is the salary for this role?"
+      },
+      {
+        type: "list",
+        name: "department",
+        message: "What department is this role?",
+        choices: depArray
+      },
+    ])
+    .then(answers => {
+      createRole(answers);
+    });
+}
+
 removeEmployee = () => {
   inquirer
     .prompt([
@@ -155,6 +180,13 @@ removeEmployee = () => {
       deleteEmployee(answers);
     });
 };
+
+async function createRole(answers) {
+  const role = new Role(answers.title, answers.salary);
+  await role.getDepID(connection, answers);
+  await role.postToDB(connection);
+  promptUser();
+}
 
 async function createEmployee(answers) {
   const employee = new Employee(answers.firstName, answers.lastName);
