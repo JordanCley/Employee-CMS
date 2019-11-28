@@ -4,10 +4,26 @@ class Role {
         this.salary = salary;
         this.department_id = null;
     }
-    getDepID(){
+    async getDepID(connection, answers){
         // get dep id from DB
-        return department_id;
+        const query = "SELECT id FROM departments WHERE ?;";
+        const result = await connection.query(query, { name: answers.department });
+        this.department_id = result[0].id;
+        
+          console.log(this);
+        return this;
     }
+
+    async postToDB(connection){ 
+          await connection.query("INSERT INTO roles SET ?",  
+          {
+              title: this.title,
+              salary: this.salary,
+              department_id: this.department_id
+          });
+          console.log("Role added to the database")
+          return this;
+      }
   
 }
 
