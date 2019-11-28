@@ -9,8 +9,6 @@ class Role {
         const query = "SELECT id FROM departments WHERE ?;";
         const result = await connection.query(query, { name: answers.department });
         this.department_id = result[0].id;
-        
-          console.log(this);
         return this;
     }
 
@@ -21,7 +19,7 @@ class Role {
               salary: this.salary,
               department_id: this.department_id
           });
-          console.log("Role added to the database")
+          console.log(`Role: ${this.title} added to the database`.red)
           return this;
       }
   

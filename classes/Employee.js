@@ -10,7 +10,6 @@ class Employee {
     const query = "SELECT id FROM roles WHERE ?;";
     const result = await connection.query(query, { title: answers.role });
     this.role_id += result[0].id;
-    console.log(this.role_id);
     return this;
   }
 
@@ -19,13 +18,10 @@ class Employee {
     const query = "SELECT id FROM departments WHERE ?;";
     const result = await connection.query(query, { name: answers.department });
     this.manager_id = result[0].id;
-    console.log(this.manager_id);
-    //   console.log(this);
     return this;
   }
 
-  async postToDB(connection){
-    //    const query = 
+  async postToDB(connection){ 
       await connection.query("INSERT INTO employees SET ?",  
       {
           first_name: this.firstName,
@@ -33,7 +29,7 @@ class Employee {
           role_id: this.role_id,
           manager_id: this.manager_id
       });
-      console.log(`Employee: ${this.firstName} ${this.lastName} added to the database`)
+      console.log(`Employee: ${this.firstName} ${this.lastName} added to the database`.red)
       return this;
   }
 }
