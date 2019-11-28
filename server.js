@@ -1,4 +1,4 @@
-require('dotenv').config()
+require("dotenv").config();
 
 const generateTitle = require("./StartTitle.js");
 const title1 = "Employee";
@@ -9,7 +9,6 @@ const Department = require("./classes/Department");
 const mysql = require("mysql");
 const util = require("util");
 const colors = require("colors");
-
 
 const inquirer = require("inquirer");
 let rolesArray = [];
@@ -26,14 +25,31 @@ const connection = mysql.createConnection({
 
 connection.connect(function(err) {
   if (err) throw err;
-  console.log("Connected!");
+  console.log("Connected! Would you like to enter?");
 });
 
 connection.query = util.promisify(connection.query);
 
+enterprompt = () => {
+  inquirer.prompt([
+    {
+      type: "confirm",
+      name: "Enter",
+      meassage: generateTitle(`${title1}\n${title2}`)
+    }
+  ]).then(answers => {
+    promptUser();
+  });
+};
+
 promptUser = () => {
   inquirer
     .prompt([
+      // {
+      //   type: "confirm",
+      //   name: "Enter",
+      //   meassage: generateTitle(`${title1}\n${title2}`)
+      // },
       {
         type: "list",
         name: "action",
@@ -56,7 +72,8 @@ promptUser = () => {
           "Update Employee Role",
           "Update Employee Manager",
           new inquirer.Separator(),
-          "Quit"
+          "Quit",
+          new inquirer.Separator()
         ]
       }
     ])
@@ -78,7 +95,7 @@ promptUser = () => {
           // do something;
           break;
         case "View All Employees By Manager":
-            getTableEmployeesByManager();
+          getTableEmployeesByManager();
           break;
         case "View All Roles":
           getTableRoles();
@@ -289,6 +306,8 @@ async function deleteEmployee(answers) {
     [splitName[0], splitName[1]]
   );
   console.log(`Employee: ${strName} has been removed.`.red);
+  employeeArray = [];
+  getAllEmployees();
   promptUser();
 }
 
@@ -304,8 +323,8 @@ async function getAllEmployees() {
 // MISSING THE MANAGERS COLUMN
 async function getTableEmployees() {
   const query =
-    "SELECT employees.id, employees.first_name, employees.last_name," +  
-    "roles.title, roles.salary  FROM employees " + 
+    "SELECT employees.id, employees.first_name, employees.last_name," +
+    "roles.title, roles.salary  FROM employees " +
     "INNER JOIN roles ON employees.role_id=roles.id";
   const result = await connection.query(query);
   console.table(result);
@@ -314,7 +333,8 @@ async function getTableEmployees() {
 
 // DOESNT WORK, NEED TO FIGURE IT OUT
 async function getTableEmployeesByManager() {
-  const query = "SELECT A.first_name, A.last_name, A.id FROM employees A, employees B WHERE B.manager_id = A.id ORDER by A.id";
+  const query =
+    "SELECT A.first_name, A.last_name, A.id FROM employees A, employees B WHERE B.manager_id = A.id ORDER by A.id";
   const result = await connection.query(query);
   console.table(result);
   promptUser();
@@ -351,12 +371,10 @@ async function getTableDepartments() {
 }
 
 function init() {
-  generateTitle(`${title1}\n${title2}`);
   getAllEmployees();
   getAllRoles();
   getAllDepartments();
-  promptUser();
+  enterprompt();
 }
 
 init();
-
