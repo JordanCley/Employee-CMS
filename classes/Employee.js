@@ -33,7 +33,7 @@ class Employee {
           role_id: this.role_id,
           manager_id: this.manager_id
       });
-      console.log("Employeed added to the database")
+      console.log("Employee added to the database")
       return this;
   }
 }
