@@ -8,9 +8,9 @@ const mysql = require("mysql");
 const util = require("util");
 
 const inquirer = require("inquirer");
-const rolesArray = [];
-const depArray = [];
-const employeeArray = [];
+let rolesArray = [];
+let depArray = [];
+let employeeArray = [];
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -86,7 +86,7 @@ promptUser = () => {
           removeEmployee();
           break;
         case "Remove A Role":
-          // do something;
+          removeRole();
           break;
         case "Remove A Department":
           // do something;
@@ -147,7 +147,7 @@ addRole = () => {
       {
         type: "input",
         name: "title",
-        message: "What role would you like to add?" 
+        message: "What role would you like to add?"
       },
       {
         type: "input",
@@ -159,12 +159,27 @@ addRole = () => {
         name: "department",
         message: "What department is this role?",
         choices: depArray
-      },
+      }
     ])
     .then(answers => {
       createRole(answers);
     });
-}
+};
+
+removeRole = () => {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "role",
+        message: "Which role would you like to remove?",
+        choices: rolesArray
+      }
+    ])
+    .then(answers => {
+      deleteRole(answers);
+    });
+};
 
 removeEmployee = () => {
   inquirer
@@ -185,6 +200,8 @@ async function createRole(answers) {
   const role = new Role(answers.title, answers.salary);
   await role.getDepID(connection, answers);
   await role.postToDB(connection);
+  rolesArray = [];
+  getAllRoles();
   promptUser();
 }
 
@@ -193,6 +210,15 @@ async function createEmployee(answers) {
   await employee.getRoleID(connection, answers);
   await employee.getDepID(connection, answers);
   await employee.postToDB(connection);
+  employeeArray = [];
+  getAllEmployees();
+  promptUser();
+}
+
+async function deleteRole(answers) {
+  const role = answers.role;
+  connection.query("DELETE FROM roles Where title = ?", [role]);
+  console.log(`Role: ${role} has been removed.`);
   promptUser();
 }
 
