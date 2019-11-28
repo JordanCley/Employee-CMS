@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const generateTitle = require("./StartTitle.js");
 const title1 = "Employee";
 const title2 = "       CMS";
@@ -6,6 +8,8 @@ const Role = require("./classes/Role");
 const Department = require("./classes/Department");
 const mysql = require("mysql");
 const util = require("util");
+const colors = require("colors");
+
 
 const inquirer = require("inquirer");
 let rolesArray = [];
@@ -13,9 +17,9 @@ let depArray = [];
 let employeeArray = [];
 
 const connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "password",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   port: 3306,
   database: "employee_cms"
 });
@@ -105,7 +109,8 @@ promptUser = () => {
 };
 
 Quit = () => {
-  console.log("Have a nice day! ^C to exit");
+  connection.end();
+  console.log("Have a nice day! ^C to exit".yellow);
 };
 
 addEmployee = () => {
@@ -226,6 +231,8 @@ removeDepartment = () => {
 };
 
 async function createDepartment(answers) {
+  name = answers.name;
+  joinName = name.split(" ").join("");
   const role = new Department(answers.name);
   await role.postToDB(connection);
   depArray = [];
@@ -234,6 +241,10 @@ async function createDepartment(answers) {
 }
 
 async function createRole(answers) {
+  const title = answers.title;
+  joinTitle = title.split(" ").join("");
+  const salary = answers.salary;
+  joinSalary = salary.split(" ").join("");
   const role = new Role(answers.title, answers.salary);
   await role.getDepID(connection, answers);
   await role.postToDB(connection);
@@ -243,7 +254,11 @@ async function createRole(answers) {
 }
 
 async function createEmployee(answers) {
-  const employee = new Employee(answers.firstName, answers.lastName);
+  const first = answers.firstName;
+  firstName = first.split(" ").join("");
+  const last = answers.lastName;
+  lastName = last.split(" ").join("");
+  const employee = new Employee(firstName, lastName);
   await employee.getRoleID(connection, answers);
   await employee.getDepID(connection, answers);
   await employee.postToDB(connection);
@@ -255,14 +270,14 @@ async function createEmployee(answers) {
 async function deleteDepartment(answers) {
   const department = answers.name;
   connection.query("DELETE FROM departments Where name = ?", [department]);
-  console.log(`Role: ${department} has been removed.`);
+  console.log(`Role: ${department} has been removed.`.red);
   promptUser();
 }
 
 async function deleteRole(answers) {
   const role = answers.role;
   connection.query("DELETE FROM roles Where title = ?", [role]);
-  console.log(`Role: ${role} has been removed.`);
+  console.log(`Role: ${role} has been removed.`.red);
   promptUser();
 }
 
@@ -273,7 +288,7 @@ async function deleteEmployee(answers) {
     "DELETE FROM employees Where first_name = ? AND last_name = ?",
     [splitName[0], splitName[1]]
   );
-  console.log(`Employee: ${strName} has been removed.`);
+  console.log(`Employee: ${strName} has been removed.`.red);
   promptUser();
 }
 
@@ -299,10 +314,7 @@ async function getTableEmployees() {
 
 // DOESNT WORK, NEED TO FIGURE IT OUT
 async function getTableEmployeesByManager() {
-  const query =
-    "SELECT employees.id, employees.first_name, employees.last_name," +  
-    "roles.title, roles.salary FROM employees " + 
-    "INNER JOIN roles ON employees.role_id=roles.id INNER JOIN departments ON roles.department_id=departments.id";
+  const query = "SELECT A.first_name, A.last_name, A.id FROM employees A, employees B WHERE B.manager_id = A.id ORDER by A.id";
   const result = await connection.query(query);
   console.table(result);
   promptUser();
@@ -339,11 +351,12 @@ async function getTableDepartments() {
 }
 
 function init() {
+  generateTitle(`${title1}\n${title2}`);
   getAllEmployees();
   getAllRoles();
   getAllDepartments();
   promptUser();
-  generateTitle(`${title1}\n${title2}`);
 }
 
 init();
+

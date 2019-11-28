@@ -6,7 +6,7 @@ class Department {
     await connection.query("INSERT INTO departments SET ?", {
       name: this.name
     });
-    console.log(`Department: ${this.name} added to the database`);
+    console.log(`Department: ${this.name} added to the database`.red);
     return this;
   }
 }
