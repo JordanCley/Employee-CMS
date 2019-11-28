@@ -41,6 +41,8 @@ promptUser = () => {
           "View All Employees",
           "View All Employees by Department",
           "View All Employees By Manager",
+          "View All Roles",
+          "View All Departments",
           new inquirer.Separator(),
           "Remove An Employee",
           "Remove A Role",
@@ -48,7 +50,8 @@ promptUser = () => {
           new inquirer.Separator(),
           "Update Employee Role",
           "Update Employee Manager",
-          new inquirer.Separator()
+          new inquirer.Separator(),
+          "Quit"
         ]
       }
     ])
@@ -64,13 +67,19 @@ promptUser = () => {
           console.log(`${answers.action}`);
           break;
         case "View All Employees":
-          // do something;
+          getTableEmployees();
           break;
         case "View All Employees by Department":
           // do something;
           break;
         case "View All Employees By Manager":
           // do something;
+          break;
+        case "View All Roles":
+          getTableRoles();
+          break;
+        case "View All Departments":
+          getTableDepartments();
           break;
         case "Remove An Employee":
           // do something;
@@ -87,8 +96,15 @@ promptUser = () => {
         case "Update Employee Manager":
           // do something;
           break;
+        case "Quit":
+          Quit();
+          break;
       }
     });
+};
+
+Quit = () => {
+  console.log("Have a nice day! ^C to exit");
 };
 
 addEmployee = () => {
@@ -118,45 +134,65 @@ addEmployee = () => {
       }
     ])
     .then(answers => {
-      const employee = new Employee(answers.firstName, answers.lastName);
-      employee.getRoleID(connection, answers);
-      employee.getDepID(connection, answers);
+      createEmployee(answers);
       // employee.getDepId(connection, answers);
-      console.log(answers.department);
-      console.log(employee);
+      // console.log(answers.department);
     });
 };
 
-getAllEmployees = () => {
+async function createEmployee(answers) {
+  const employee = new Employee(answers.firstName, answers.lastName);
+  await employee.getRoleID(connection, answers);
+  await employee.getDepID(connection, answers);
+  await employee.postToDB(connection);
+  promptUser();
+}
+
+async function getTableEmployees() {
   const query = "SELECT * FROM employees";
-  connection.query(query, (err, data) => {
-    if (err) throw err;
-  });
-};
+  const result = await connection.query(query);
+  console.table(result);
+  promptUser();
+}
 
-getAllRoles = () => {
+async function getAllRoles() {
   const query = "SELECT * FROM roles";
-  connection.query(query, (err, data) => {
-    if (err) throw err;
-    data.forEach(role => {
-      rolesArray.push(role.title);
-    });
+  const result = await connection.query(query);
+  result.forEach(role => {
+    rolesArray.push(role.title);
   });
-};
+}
 
-getAllDepartments = () => {
+async function getTableRoles() {
+  const query = "SELECT * FROM roles";
+  const result = await connection.query(query);
+  console.table(result);
+  promptUser();
+}
+
+async function getAllDepartments() {
   const query = "SELECT * FROM departments";
-  connection.query(query, (err, data) => {
-    if (err) throw err;
-    data.forEach(department => {
-      depArray.push(department.name);
-    });
+  const result = await connection.query(query);
+  result.forEach(department => {
+    depArray.push(department.name);
   });
-};
+}
 
-getAllDepartments();
-getAllRoles();
-promptUser();
+async function getTableDepartments() {
+  const query = "SELECT * FROM departments";
+  const result = await connection.query(query);
+  console.table(result);
+  promptUser();
+}
+
+function init() {
+  getAllRoles();
+  getAllDepartments();
+  promptUser();
+  generateTitle("Employee \n       CMS");
+}
+
+init();
 
 const employee = new Employee("Jordan", "McQuiston");
 const role = new Role("Manager", 160000.0);
