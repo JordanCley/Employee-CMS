@@ -38,15 +38,15 @@ role_id INT NOT NULL,
 manager_id INT NOT NULL,
 PRIMARY KEY(id),
 FOREIGN KEY(role_id) REFERENCES roles(id),
-FOREIGN KEY(manager_id) REFERENCES departments(id)
+FOREIGN KEY(manager_id) REFERENCES employees(id)
 );
 
 
 INSERT INTO employees (first_name, last_name, role_id, manager_id)
-VALUES ("Jordan", "McQuiston", 2, 2), 
+VALUES ("Jordan", "McQuiston", 1, 1), 
 	   ("Thomas","Collins", 4, 1), 
-       ("Homar","Ibarra", 1, 2),
-       ("Leslie", "Decault", 5, 4),
-       ("Sarah", "Hackbarth", 3, 3), 
+       ("Homar","Ibarra", 1, 1),
+       ("Leslie", "Decault", 5, 1),
+       ("Sarah", "Hackbarth", 3, 1), 
        ("Ryan", "Ledbetter", 4, 1); 
 	   

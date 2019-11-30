@@ -13,24 +13,36 @@ class Employee {
     return this;
   }
 
-  async getDepID(connection, answers) {
+  async getManagerID(connection, answers) {
     // query DB and get Dep ID of Department
-    const query = "SELECT id FROM departments WHERE ?;";
-    const result = await connection.query(query, { name: answers.department });
+    const fullName = answers.manager;
+    // console.log(fullName);
+    const nameArray = fullName.split(" ");
+    // console.log(nameArray);
+    const firstName = nameArray[0];
+    // console.log(firstName);
+    const lastName = nameArray[1];
+    // console.log(lastName);
+    const query = "SELECT id FROM employees WHERE ?";
+    const result = await connection.query(query, {
+      last_name: lastName
+    });
+    // console.log(result);
     this.manager_id = result[0].id;
     return this;
   }
 
-  async postToDB(connection){ 
-      await connection.query("INSERT INTO employees SET ?",  
-      {
-          first_name: this.firstName,
-          last_name: this.lastName,
-          role_id: this.role_id,
-          manager_id: this.manager_id
-      });
-      console.log(`Employee: ${this.firstName} ${this.lastName} added to the database`.red)
-      return this;
+  async postToDB(connection) {
+    await connection.query("INSERT INTO employees SET ?", {
+      first_name: this.firstName,
+      last_name: this.lastName,
+      role_id: this.role_id,
+      manager_id: this.manager_id
+    });
+    console.log(
+      `Employee: ${this.firstName} ${this.lastName} added to the database`.red
+    );
+    return this;
   }
 }
 

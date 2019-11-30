@@ -14,6 +14,7 @@ const inquirer = require("inquirer");
 let rolesArray = [];
 let depArray = [];
 let employeeArray = [];
+let managerArray = [];
 
 const connection = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -31,15 +32,17 @@ connection.connect(function(err) {
 connection.query = util.promisify(connection.query);
 
 enterprompt = () => {
-  inquirer.prompt([
-    {
-      type: "confirm",
-      name: "Enter",
-      meassage: generateTitle(`${title1}\n${title2}`)
-    }
-  ]).then(answers => {
-    promptUser();
-  });
+  inquirer
+    .prompt([
+      {
+        type: "confirm",
+        name: "Enter",
+        meassage: generateTitle(`${title1}\n${title2}`)
+      }
+    ])
+    .then(answers => {
+      promptUser();
+    });
 };
 
 promptUser = () => {
@@ -60,6 +63,7 @@ promptUser = () => {
           "Add A Role",
           new inquirer.Separator(),
           "View All Employees",
+          "View All Managers",
           "View All Employees by Department",
           "View All Employees By Manager",
           "View All Roles",
@@ -90,6 +94,9 @@ promptUser = () => {
           break;
         case "View All Employees":
           getTableEmployees();
+          break;
+        case "View All Managers":
+          getTableManagers();
           break;
         case "View All Employees by Department":
           // do something;
@@ -141,9 +148,9 @@ addEmployee = () => {
       },
       {
         type: "list",
-        name: "department",
-        message: "What is the employees's department?",
-        choices: depArray
+        name: "manager",
+        message: "Who is the their manager?",
+        choices: managerArray
       },
       {
         type: "input",
@@ -217,6 +224,7 @@ removeRole = () => {
     });
 };
 
+
 removeEmployee = () => {
   inquirer
     .prompt([
@@ -277,7 +285,7 @@ async function createEmployee(answers) {
   lastName = last.split(" ").join("");
   const employee = new Employee(firstName, lastName);
   await employee.getRoleID(connection, answers);
-  await employee.getDepID(connection, answers);
+  await employee.getManagerID(connection, answers);
   await employee.postToDB(connection);
   employeeArray = [];
   getAllEmployees();
@@ -322,19 +330,16 @@ async function getAllEmployees() {
 
 // MISSING THE MANAGERS COLUMN
 async function getTableEmployees() {
-  const query =
-    "SELECT employees.id, employees.first_name, employees.last_name," +
-    "roles.title, roles.salary  FROM employees " +
-    "INNER JOIN roles ON employees.role_id=roles.id";
+  const query = "SELECT e.id, e.first_name, e.last_name, r.title, r.salary, d.name AS departments, CONCAT(b.first_name, ' ', b.last_name) AS manager FROM employees e JOIN roles r ON e.role_id=r.id JOIN departments d ON r.department_id=d.id JOIN employees b ON e.manager_id=b.id";
   const result = await connection.query(query);
   console.table(result);
   promptUser();
 }
 
-// DOESNT WORK, NEED TO FIGURE IT OUT
+
 async function getTableEmployeesByManager() {
-  const query =
-    "SELECT A.first_name, A.last_name, A.id FROM employees A, employees B WHERE B.manager_id = A.id ORDER by A.id";
+  const query = "SELECT A.first_name, A.last_name, A.id FROM employees A, employees B WHERE B.manager_id=A.id ORDER by A.id";
+  console.log(query);
   const result = await connection.query(query);
   console.table(result);
   promptUser();
@@ -346,6 +351,26 @@ async function getAllRoles() {
   result.forEach(role => {
     rolesArray.push(role.title);
   });
+}
+
+async function getAllManagers() {
+  const query =
+    "SELECT employees.first_name, employees.last_name FROM employees LEFT JOIN roles ON employees.role_id=roles.id WHERE roles.title = 'Manager'";
+  const result = await connection.query(query);
+
+  // console.log(result);
+  for (let i = 0; i < result.length; i++) {
+    let fullName = `${result[i].first_name} ${result[i].last_name}`;
+    managerArray.push(fullName);
+  }
+}
+
+async function getTableManagers() {
+  const query =
+    "SELECT employees.first_name, employees.last_name FROM employees LEFT JOIN roles ON employees.role_id=roles.id WHERE roles.title = 'Manager'";
+  const result = await connection.query(query);
+  console.table(result);
+  promptUser();
 }
 
 async function getTableRoles() {
@@ -374,6 +399,7 @@ function init() {
   getAllEmployees();
   getAllRoles();
   getAllDepartments();
+  getAllManagers();
   enterprompt();
 }
 
