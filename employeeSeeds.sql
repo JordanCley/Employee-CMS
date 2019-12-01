@@ -22,7 +22,7 @@ CREATE TABLE roles(
 );
 
 INSERT INTO roles (title, salary, department_id)
-VALUES ("Manager", 160000.00, 2), 
+VALUES ("Manager", 160000.00, 1), 
 	   ("Engineer", 120000.00, 2), 
        ("Lawyer", 250000.00, 3), 
        ("Administrator", 75000.00, 1), 
@@ -35,7 +35,7 @@ id INT NOT NULL AUTO_INCREMENT,
 first_name VARCHAR(30) NULL,
 last_name VARCHAR(30) NULL,
 role_id INT NOT NULL,
-manager_id INT NOT NULL,
+manager_id INT NULL,
 PRIMARY KEY(id),
 FOREIGN KEY(role_id) REFERENCES roles(id),
 FOREIGN KEY(manager_id) REFERENCES employees(id)
@@ -43,10 +43,10 @@ FOREIGN KEY(manager_id) REFERENCES employees(id)
 
 
 INSERT INTO employees (first_name, last_name, role_id, manager_id)
-VALUES ("Jordan", "McQuiston", 1, 1), 
+VALUES ("Jordan", "McQuiston", 1, NULL), 
 	   ("Thomas","Collins", 4, 1), 
-       ("Homar","Ibarra", 1, 1),
-       ("Leslie", "Decault", 5, 1),
+       ("Homar","Ibarra", 2, 1),
+       ("Leslie", "Decault", 5, NULL),
        ("Sarah", "Hackbarth", 3, 1), 
        ("Ryan", "Ledbetter", 4, 1); 
 	   

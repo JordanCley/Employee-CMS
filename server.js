@@ -48,11 +48,6 @@ enterprompt = () => {
 promptUser = () => {
   inquirer
     .prompt([
-      // {
-      //   type: "confirm",
-      //   name: "Enter",
-      //   meassage: generateTitle(`${title1}\n${title2}`)
-      // },
       {
         type: "list",
         name: "action",
@@ -99,7 +94,7 @@ promptUser = () => {
           getTableManagers();
           break;
         case "View All Employees by Department":
-          // do something;
+          getTableEmployeesByDepartment();
           break;
         case "View All Employees By Manager":
           getTableEmployeesByManager();
@@ -120,10 +115,10 @@ promptUser = () => {
           removeDepartment();
           break;
         case "Update Employee Role":
-          // do something;
+          updateEmployeeRole();
           break;
         case "Update Employee Manager":
-          // do something;
+          updateEmployeeManager();
           break;
         case "Quit":
           Quit();
@@ -147,26 +142,56 @@ addEmployee = () => {
         choices: rolesArray
       },
       {
+        type: "confirm",
+        name: "haveManager",
+        message: "Does this employee have a manager?",
+        default: false,
+        when: function(answers) {
+          return answers.role !== "Manager";
+        }
+      },
+      {
         type: "list",
         name: "manager",
         message: "Who is the their manager?",
-        choices: managerArray
+        choices: managerArray,
+        when: function(answers) {
+          return answers.role !== "Manager" && answers.haveManager !== false;
+        }
+      },
+      {
+        type: "list",
+        name: "managerDep",
+        message: "What is their department?",
+        choices: depArray
       },
       {
         type: "input",
         name: "firstName",
-        message: "What is the employees's first name?"
+        message: "What is the employees's first name?",
+        validate: function(input) {
+          if (isNaN(input)) {
+            return true;
+          } else {
+            return "No numbers please!";
+          }
+        }
       },
       {
         type: "input",
         name: "lastName",
-        message: "What is the employees's last name?"
+        message: "What is the employees's last name?",
+        validate: function(input) {
+          if (isNaN(input)) {
+            return true;
+          } else {
+            return "No numbers please!";
+          }
+        }
       }
     ])
     .then(answers => {
       createEmployee(answers);
-      // employee.getDepId(connection, answers);
-      // console.log(answers.department);
     });
 };
 
@@ -176,12 +201,26 @@ addRole = () => {
       {
         type: "input",
         name: "title",
-        message: "What role would you like to add?"
+        message: "What role would you like to add?",
+        validate: function(input) {
+          if (isNaN(input)) {
+            return true;
+          } else {
+            return "No numbers please!";
+          }
+        }
       },
       {
         type: "input",
         name: "salary",
-        message: "What is the salary for this role?"
+        message: "What is the salary for this role?",
+        validate: function(input) {
+          if (isNaN(input)) {
+            return "Please enter a valid number!";
+          } else {
+            return true;
+          }
+        }
       },
       {
         type: "list",
@@ -201,7 +240,14 @@ addDepartment = () => {
       {
         type: "input",
         name: "name",
-        message: "What is the department name?"
+        message: "What is the department name?",
+        validate: function(input) {
+          if (isNaN(input)) {
+            return true;
+          } else {
+            return "No numbers please!";
+          }
+        }
       }
     ])
     .then(answers => {
@@ -223,7 +269,6 @@ removeRole = () => {
       deleteRole(answers);
     });
 };
-
 
 removeEmployee = () => {
   inquirer
@@ -252,6 +297,48 @@ removeDepartment = () => {
     ])
     .then(answers => {
       deleteDepartment(answers);
+    });
+};
+
+updateEmployeeRole = () => {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "employee",
+        message: "Which employee would you like to update?",
+        choices: employeeArray
+      },
+      {
+        type: "list",
+        name: "role",
+        message: "What is the employee's new role?",
+        choices: rolesArray
+      }
+    ])
+    .then(answers => {
+      updateEmployee(answers);
+    });
+};
+
+updateEmployeeManager = () => {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "employee",
+        message: "Which employee would you like to update?",
+        choices: employeeArray
+      },
+      {
+        type: "list",
+        name: "newManager",
+        message: "Who is the employee's new Manager?",
+        choices: managerArray
+      }
+    ])
+    .then(answers => {
+      updateEmployee(answers);
     });
 };
 
@@ -288,6 +375,25 @@ async function createEmployee(answers) {
   await employee.getManagerID(connection, answers);
   await employee.postToDB(connection);
   employeeArray = [];
+  managerArray = [];
+  getAllManagers();
+  getAllEmployees();
+  promptUser();
+}
+
+async function updateEmployee(answers) {
+  const empChoice = answers.employee;
+  const nameArray = empChoice.split(" ");
+  const firstName = nameArray[1];
+  const lastName = nameArray[2];
+  const employee = new Employee(firstName, lastName);
+  if (answers.role) {
+    await employee.getRoleID(connection, answers);
+    await employee.updateEmployeeRoleDB(connection, answers);
+  } else {
+    await employee.updateEmployeeManagerDB(connection, answers);
+  }
+  employeeArray = [];
   getAllEmployees();
   promptUser();
 }
@@ -311,7 +417,7 @@ async function deleteEmployee(answers) {
   const splitName = strName.split(" ");
   connection.query(
     "DELETE FROM employees Where first_name = ? AND last_name = ?",
-    [splitName[0], splitName[1]]
+    [splitName[1], splitName[2]]
   );
   console.log(`Employee: ${strName} has been removed.`.red);
   employeeArray = [];
@@ -323,22 +429,31 @@ async function getAllEmployees() {
   const query = "SELECT * FROM employees";
   const result = await connection.query(query);
   result.forEach(employee => {
-    const fullName = `${employee.first_name} ${employee.last_name}`;
-    employeeArray.push(fullName);
+    const fullNameId = `${employee.id} ${employee.first_name} ${employee.last_name}`;
+    employeeArray.push(fullNameId);
   });
 }
 
-// MISSING THE MANAGERS COLUMN
 async function getTableEmployees() {
-  const query = "SELECT e.id, e.first_name, e.last_name, r.title, r.salary, d.name AS departments, CONCAT(b.first_name, ' ', b.last_name) AS manager FROM employees e JOIN roles r ON e.role_id=r.id JOIN departments d ON r.department_id=d.id JOIN employees b ON e.manager_id=b.id";
+  const query =
+    "SELECT e.id, e.first_name, e.last_name, r.title, r.salary FROM employees e JOIN roles r ON e.role_id=r.id";
   const result = await connection.query(query);
   console.table(result);
   promptUser();
 }
 
-
 async function getTableEmployeesByManager() {
-  const query = "SELECT A.first_name, A.last_name, A.id FROM employees A, employees B WHERE B.manager_id=A.id ORDER by A.id";
+  const query =
+    "SELECT e.id, e.first_name, e.last_name, CONCAT(b.first_name,' ',b.last_name) AS manager FROM employees e JOIN employees b ON e.manager_id=b.id ORDER by manager";
+  console.log(query);
+  const result = await connection.query(query);
+  console.table(result);
+  promptUser();
+}
+
+async function getTableEmployeesByDepartment() {
+  const query =
+    "SELECT e.id, e.first_name, e.last_name, r.title, r.salary, d.name AS departments FROM employees e JOIN roles r ON e.role_id=r.id JOIN departments d ON r.department_id=d.id ORDER by departments";
   console.log(query);
   const result = await connection.query(query);
   console.table(result);
@@ -357,8 +472,6 @@ async function getAllManagers() {
   const query =
     "SELECT employees.first_name, employees.last_name FROM employees LEFT JOIN roles ON employees.role_id=roles.id WHERE roles.title = 'Manager'";
   const result = await connection.query(query);
-
-  // console.log(result);
   for (let i = 0; i < result.length; i++) {
     let fullName = `${result[i].first_name} ${result[i].last_name}`;
     managerArray.push(fullName);
