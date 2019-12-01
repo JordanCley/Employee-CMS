@@ -19,7 +19,10 @@ class Employee {
       const nameArray = fullName.split(" ");
       const firstName = nameArray[0];
       const lastName = nameArray[1];
-      const result = await connection.query("SELECT id FROM employees WHERE first_name=? AND last_name=?", [firstName, lastName]);
+      const result = await connection.query(
+        "SELECT id FROM employees WHERE first_name=? AND last_name=?",
+        [firstName, lastName]
+      );
       this.manager_id = result[0].id;
       return this;
     } else {
@@ -43,10 +46,16 @@ class Employee {
 
   async updateEmployeeRoleDB(connection, answers) {
     const IdEmpArray = answers.employee.split(" ");
-    const roleID = await connection.query("SELECT id FROM roles WHERE title=?",[answers.role]);
-    await connection.query(`UPDATE employees SET role_id=${roleID[0].id} WHERE id=${IdEmpArray[0]}`)
+    const roleID = await connection.query(
+      "SELECT id FROM roles WHERE title=?",
+      [answers.role]
+    );
+    await connection.query(
+      `UPDATE employees SET role_id=${roleID[0].id} WHERE id=${IdEmpArray[0]}`
+    );
     console.log(
-      `Employee: ${this.firstName} ${this.lastName}'s role updated in database to ${answers.role}`.red
+      `Employee: ${this.firstName} ${this.lastName}'s role updated in database to ${answers.role}`
+        .red
     );
     return this;
   }
@@ -54,16 +63,20 @@ class Employee {
   async updateEmployeeManagerDB(connection, answers) {
     const IdEmpArray = answers.employee.split(" ");
     const ManagerArray = answers.newManager.split(" ");
-    const managerID = await connection.query("SELECT id FROM employees WHERE first_name=? AND last_name=?", [ManagerArray[0], ManagerArray[1]]);
+    const managerID = await connection.query(
+      "SELECT id FROM employees WHERE first_name=? AND last_name=?",
+      [ManagerArray[0], ManagerArray[1]]
+    );
     console.log(managerID[0].id);
-    await connection.query(`UPDATE employees SET manager_id=${managerID[0].id} WHERE id=${IdEmpArray[0]}`);
+    await connection.query(
+      `UPDATE employees SET manager_id=${managerID[0].id} WHERE id=${IdEmpArray[0]}`
+    );
     console.log(
-      `Employee: ${this.firstName} ${this.lastName}'s Manager was updated in database to ${answers.newManager}`.red
+      `Employee: ${this.firstName} ${this.lastName}'s Manager was updated in database to ${answers.newManager}`
+        .red
     );
     return this;
   }
 }
-
-
 
 module.exports = Employee;
