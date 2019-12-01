@@ -147,7 +147,7 @@ addEmployee = () => {
         message: "Does this employee have a manager?",
         default: false,
         when: function(answers) {
-          return answers.role !== "Manager";
+          return answers.role !== "manager";
         }
       },
       {
@@ -156,7 +156,7 @@ addEmployee = () => {
         message: "Who is the their manager?",
         choices: managerArray,
         when: function(answers) {
-          return answers.role !== "Manager" && answers.haveManager !== false;
+          return answers.role !== "manager" && answers.haveManager !== false;
         }
       },
       {
@@ -344,8 +344,8 @@ updateEmployeeManager = () => {
 
 async function createDepartment(answers) {
   name = answers.name;
-  joinName = name.split(" ").join("");
-  const role = new Department(answers.name);
+  lowerCase = name.toLowerCase();
+  const role = new Department(lowerCase);
   await role.postToDB(connection);
   depArray = [];
   getAllDepartments();
@@ -355,9 +355,11 @@ async function createDepartment(answers) {
 async function createRole(answers) {
   const title = answers.title;
   joinTitle = title.split(" ").join("");
+  lowerCase = joinTitle.toLowerCase();
+  console.log(lowerCase)
   const salary = answers.salary;
   joinSalary = salary.split(" ").join("");
-  const role = new Role(answers.title, answers.salary);
+  const role = new Role(lowerCase, joinSalary);
   await role.getDepID(connection, answers);
   await role.postToDB(connection);
   rolesArray = [];
@@ -402,6 +404,8 @@ async function deleteDepartment(answers) {
   const department = answers.name;
   connection.query("DELETE FROM departments Where name = ?", [department]);
   console.log(`Role: ${department} has been removed.`.red);
+  depArray = [];
+  getAllDepartments();
   promptUser();
 }
 
@@ -409,6 +413,8 @@ async function deleteRole(answers) {
   const role = answers.role;
   connection.query("DELETE FROM roles Where title = ?", [role]);
   console.log(`Role: ${role} has been removed.`.red);
+  rolesArray = [];
+  getAllRoles();
   promptUser();
 }
 
