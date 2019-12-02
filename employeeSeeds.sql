@@ -10,7 +10,7 @@ CREATE TABLE departments(
 );
 
 INSERT INTO departments (name)
-VALUES ("Human Resources"), ("Engineering"), ("Legal"), ("Accounting");
+VALUES ("human resources"), ("engineering"), ("legal"), ("accounting");
 
 CREATE TABLE roles(
 	id INT NOT NULL AUTO_INCREMENT,
@@ -24,11 +24,12 @@ CREATE TABLE roles(
 );
 
 INSERT INTO roles (title, salary, department_id)
-VALUES ("Manager", 160000.00, 1), 
-	   ("Engineer", 120000.00, 2), 
-       ("Lawyer", 250000.00, 3), 
-       ("Administrator", 75000.00, 1), 
-       ("Accountant", 95000.00, 4);
+VALUES ("manager", 160000.00, 1),
+       ("manager", 150000.00, 2),
+	   ("engineer", 120000.00, 2), 
+       ("lawyer", 250000.00, 3), 
+       ("administrator", 75000.00, 1), 
+       ("accountant", 95000.00, 4);
 		
 
 
@@ -41,7 +42,7 @@ manager_id INT NULL,
 PRIMARY KEY(id),
 CONSTRAINT fk_role_roles_id
 FOREIGN KEY(role_id) REFERENCES roles(id)
-ON DELETE CASCADE
+ON DELETE CASCADE,
 CONSTRAINT fk_emp_manager_id
 FOREIGN KEY(manager_id) REFERENCES employees(id)
 ON DELETE CASCADE
@@ -49,10 +50,9 @@ ON DELETE CASCADE
 
 
 INSERT INTO employees (first_name, last_name, role_id, manager_id)
-VALUES ("Jordan", "McQuiston", 1, NULL), 
-	   ("Thomas","Collins", 4, 1), 
-       ("Homar","Ibarra", 2, 1),
-       ("Leslie", "Decault", 1, NULL),
-       ("Sarah", "Hackbarth", 3, 1), 
-       ("Ryan", "Ledbetter", 4, 1); 
-	   
+VALUES ("jordan", "mcQuiston", 1, NULL), 
+	   ("thomas","collins", 4, 1), 
+       ("homar","ibarra", 2, 2),
+       ("leslie", "decault", 1, NULL),
+       ("sarah", "hackbarth", 3, NULL), 
+       ("ryan", "ledbetter", 4, 1); 
