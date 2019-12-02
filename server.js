@@ -370,9 +370,11 @@ async function createRole(answers) {
 async function createEmployee(answers) {
   const first = answers.firstName;
   firstName = first.split(" ").join("");
+  lowerFirst = firstName.toLowerCase();
   const last = answers.lastName;
   lastName = last.split(" ").join("");
-  const employee = new Employee(firstName, lastName);
+  lowerLast = lastName.toLowerCase();
+  const employee = new Employee(lowerFirst, lowerLast);
   await employee.getRoleID(connection, answers);
   await employee.getManagerID(connection, answers);
   await employee.postToDB(connection);
@@ -442,7 +444,7 @@ async function getAllEmployees() {
 
 async function getTableEmployees() {
   const query =
-    "SELECT e.id, e.first_name, e.last_name, r.title, r.salary FROM employees e JOIN roles r ON e.role_id=r.id";
+    "SELECT e.id, e.first_name, e.last_name, r.title, r.salary, d.name AS departments, CONCAT(b.first_name,' ', b.last_name) AS manager FROM employees e JOIN roles r ON e.role_id=r.id JOIN departments d ON r.department_id=d.id LEFT JOIN employees b ON e.manager_id=b.id";
   const result = await connection.query(query);
   console.table(result);
   promptUser();
